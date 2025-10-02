@@ -1,0 +1,1736 @@
+{
+  "datasets": [
+    {
+      "name": "dac3fcb2",
+      "displayName": "vw_customer_overview_gld",
+      "queryLines": [
+        "WITH Base AS (\r\n",
+        "  SELECT\r\n",
+        "    ID                                  AS opp_id,\r\n",
+        "    Name                                AS account_name,\r\n",
+        "    `Service Line`                      AS service_line,\r\n",
+        "    `Service Family`                    AS service_family,\r\n",
+        "    Reporting_Org                       AS reporting_org,\r\n",
+        "    StageName                           AS stage_name,\r\n",
+        "    Type                                AS opp_type,\r\n",
+        "    Amount_ACV                          AS amount_acv,\r\n",
+        "    Roadmap_Status                      AS roadmap_status,\r\n",
+        "    NA_Vertical                         AS na_vertical,\r\n",
+        "    CloseDate                           AS close_date,\r\n",
+        "    YEAR(CloseDate)                     AS year,\r\n",
+        "    MONTH(CloseDate)                    AS month,\r\n",
+        "    QUARTER(CloseDate)                  AS quarter,\r\n",
+        "    CVA_CSAT,\r\n",
+        "    CVA_NPS\r\n",
+        "  FROM advisory_demo_catalog.ai_bi_reporting.vw_customer_overview_gld\r\n",
+        "  WHERE (`Service Line` = :Service_Line_Param OR :Service_Line_Param = 'ALL')\r\n",
+        "    AND (`Reporting_Org` = :Reporting_Org_Param OR :Reporting_Org_Param = 'ALL')\r\n",
+        "    AND (StageName = :StageName_Param OR :StageName_Param = 'ALL')\r\n",
+        "    AND (`NA_Vertical` = :NA_Vertical_Param OR :NA_Vertical_Param = 'ALL')\r\n",
+        "    AND (`Type` = :Type_Param OR :Type_Param = 'ALL')\r\n",
+        "),\r\n",
+        "Dedup AS (\r\n",
+        "  SELECT *\r\n",
+        "  FROM Base\r\n",
+        "--  WHERE (year = CAST(:Year_Param AS BIGINT))\r\n",
+        "--     OR (year = CAST(:Year_Param - 1 AS BIGINT))\r\n",
+        "),\r\n",
+        "Years AS (\r\n",
+        "  SELECT\r\n",
+        "    YEAR(current_timestamp()) as current_year\r\n",
+        ")\r\n",
+        "SELECT\r\n",
+        "  d.opp_id,\r\n",
+        "  d.account_name,\r\n",
+        "  d.service_line,\r\n",
+        "  d.service_family,\r\n",
+        "  d.reporting_org,\r\n",
+        "  d.stage_name,\r\n",
+        "  d.opp_type,\r\n",
+        "  d.roadmap_status,\r\n",
+        "  d.na_vertical,\r\n",
+        "  d.close_date,\r\n",
+        "  d.year,\r\n",
+        "  d.month,\r\n",
+        "  d.quarter,\r\n",
+        "  d.CVA_CSAT,\r\n",
+        "  d.CVA_NPS,\r\n",
+        "  d.amount_acv,\r\n",
+        "  CAST(1 AS INT) AS one,\r\n",
+        "  CAST(CASE WHEN d.stage_name = '12 - Closed Won'  THEN 1 ELSE 0 END AS INT) AS is_won,\r\n",
+        "  CAST(CASE WHEN d.stage_name = '13 - Closed Lost' THEN 1 ELSE 0 END AS INT) AS is_lost,\r\n",
+        "  CAST(CASE WHEN d.opp_type   = 'Renewal of Contract/Extension' THEN 1 ELSE 0 END AS INT) AS is_renewal,\r\n",
+        "  COALESCE(d.amount_acv, 0) AS acv,\r\n",
+        "  CASE WHEN d.stage_name = '12 - Closed Won'  THEN COALESCE(d.amount_acv,0) ELSE 0 END AS acv_won,\r\n",
+        "  CASE WHEN d.stage_name = '13 - Closed Lost' THEN COALESCE(d.amount_acv,0) ELSE 0 END AS acv_lost,\r\n",
+        "  CAST(CASE WHEN ( d.year = CAST(:Year_Param AS BIGINT) ) THEN 1 ELSE 0 END AS INT) AS is_current_year,\r\n",
+        "  CAST(CASE WHEN ( d.year = CAST(:Year_Param - 1 AS BIGINT) ) THEN 1 ELSE 0 END AS INT) AS is_previous_year\r\n",
+        "FROM Dedup d\r\n",
+        ";"
+      ],
+      "parameters": [
+        {
+          "displayName": "Service_Line_Param",
+          "keyword": "Service_Line_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "Reporting_Org_Param",
+          "keyword": "Reporting_Org_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "Type_Param",
+          "keyword": "Type_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "StageName_Param",
+          "keyword": "StageName_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "NA_Vertical_Param",
+          "keyword": "NA_Vertical_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "ALL"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "displayName": "Year_Param",
+          "keyword": "Year_Param",
+          "dataType": "STRING",
+          "defaultSelection": {
+            "values": {
+              "dataType": "STRING",
+              "values": [
+                {
+                  "value": "2025"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "columns": [
+        {
+          "displayName": "Win_Rate_percentage",
+          "description": "",
+          "expression": "try_divide(coalesce(COUNT(DISTINCT CASE WHEN stage_name = '12 - Closed Won' THEN opp_id END)), coalesce(COUNT(DISTINCT opp_id),0) )"
+        },
+        {
+          "displayName": "Renewal_Rate_percentage",
+          "description": "",
+          "expression": "try_divide(coalesce(COUNT(DISTINCT CASE WHEN opp_type ='Renewal of Contract/Extension' THEN opp_id END)), coalesce(COUNT(DISTINCT opp_id),0))"
+        },
+        {
+          "displayName": "opp_cnt_CURR",
+          "description": "",
+          "expression": "coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 THEN opp_id END))"
+        },
+        {
+          "displayName": "opp_cnt_PREV",
+          "description": "",
+          "expression": "coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 THEN opp_id END))"
+        },
+        {
+          "displayName": "Change_opp",
+          "description": "",
+          "expression": "coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 THEN opp_id END)) - coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 THEN opp_id END))"
+        },
+        {
+          "displayName": "targer_opp",
+          "description": "",
+          "expression": "concat( cast(round(try_divide(coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 THEN opp_id END)) - coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 THEN opp_id END)), coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 THEN opp_id END))) * 100,2)  as string),'% (' , cast(coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 THEN opp_id END)) - coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 THEN opp_id END)) as string), ') vs. prior period') "
+        },
+        {
+          "displayName": "won_cnt_CURR",
+          "description": "",
+          "expression": "coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 and is_won = 1 THEN opp_id END))"
+        },
+        {
+          "displayName": "won_cnt_PREV",
+          "description": "",
+          "expression": "coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 and is_won = 1 THEN opp_id END))"
+        },
+        {
+          "displayName": "targer_won",
+          "description": "",
+          "expression": "concat( cast(round(try_divide(coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 AND is_won = 1 THEN opp_id END)) - coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 AND is_won = 1 THEN opp_id END)), coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 AND is_won = 1 THEN opp_id END))) * 100,2)  as string),'% (' , cast(coalesce(COUNT(DISTINCT CASE WHEN is_current_year = 1 AND is_won = 1 THEN opp_id END)) - coalesce(COUNT(DISTINCT CASE WHEN is_previous_year = 1 AND is_won =1 THEN opp_id END)) as string), ') vs. prior period') \r\n"
+        },
+        {
+          "displayName": "amount_acv_CURR",
+          "description": "",
+          "expression": "coalesce(SUM(CASE WHEN is_current_year = 1 THEN amount_acv END))"
+        },
+        {
+          "displayName": "win_perc_CURR",
+          "description": "",
+          "expression": "try_divide(coalesce(COUNT(DISTINCT CASE WHEN is_won = 1 AND is_current_year = 1 THEN opp_id END)), coalesce(COUNT(DISTINCT opp_id),0) )"
+        },
+        {
+          "displayName": "renewal_perc_CURR",
+          "description": "",
+          "expression": "try_divide(coalesce(COUNT(DISTINCT CASE WHEN opp_type ='Renewal of Contract/Extension' AND is_current_year = 1 THEN opp_id END)), coalesce(COUNT(DISTINCT opp_id),0))"
+        },
+        {
+          "displayName": "target_acv",
+          "description": "",
+          "expression": "concat( cast(round(try_divide(coalesce(sum( CASE WHEN is_current_year = 1 THEN amount_acv END)) - coalesce(sum( CASE WHEN is_previous_year = 1 THEN amount_acv END)), coalesce(sum( CASE WHEN is_previous_year = 1 THEN amount_acv END))) * 100,2)  as string),'% ($' , cast(coalesce(sum( CASE WHEN is_current_year = 1 THEN amount_acv END)) - coalesce(sum( CASE WHEN is_previous_year = 1 THEN amount_acv END)) as string), ' USD) vs. prior period') "
+        },
+        {
+          "displayName": "csat_CURR",
+          "description": "",
+          "expression": "coalesce(sum( CASE WHEN is_current_year = 1 THEN CVA_CSAT END))"
+        },
+        {
+          "displayName": "csat_PREV",
+          "description": "",
+          "expression": "coalesce(sum( CASE WHEN is_previous_year = 1 THEN CVA_CSAT END))"
+        },
+        {
+          "displayName": "nps_CURR",
+          "description": "",
+          "expression": "coalesce(sum( CASE WHEN is_current_year = 1 THEN CVA_NPS END))"
+        },
+        {
+          "displayName": "nps_PREV",
+          "description": "",
+          "expression": "coalesce(sum( CASE WHEN is_previous_year = 1 THEN CVA_NPS END))"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "12f2ad54",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "064015a0",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 24px;color: #E8ECF0;\">**Opportunity Traccking**</span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#1C618D"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "e1885631",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(targer_opp)",
+                      "expression": "MEASURE(`targer_opp`)"
+                    },
+                    {
+                      "name": "measure(opp_cnt_CURR)",
+                      "expression": "MEASURE(`opp_cnt_CURR`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(opp_cnt_CURR)"
+                },
+                "target": {
+                  "fieldName": "measure(targer_opp)",
+                  "style": {
+                    "rules": [
+                      {
+                        "condition": {
+                          "operator": "="
+                        },
+                        "color": "#00A972"
+                      }
+                    ]
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Opportunities"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "008d4e96",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(targer_opp)",
+                      "expression": "MEASURE(`targer_opp`)"
+                    },
+                    {
+                      "name": "measure(opp_cnt_CURR)",
+                      "expression": "MEASURE(`opp_cnt_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_won` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(opp_cnt_CURR)"
+                },
+                "target": {
+                  "fieldName": "measure(targer_opp)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Leads Won"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 1,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "5ef0f410",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(targer_opp)",
+                      "expression": "MEASURE(`targer_opp`)"
+                    },
+                    {
+                      "name": "measure(opp_cnt_CURR)",
+                      "expression": "MEASURE(`opp_cnt_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_lost` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(opp_cnt_CURR)"
+                },
+                "target": {
+                  "fieldName": "measure(targer_opp)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Leads Lost"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 1,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c9bd54f5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(targer_opp)",
+                      "expression": "MEASURE(`targer_opp`)"
+                    },
+                    {
+                      "name": "measure(opp_cnt_CURR)",
+                      "expression": "MEASURE(`opp_cnt_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_renewal` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(opp_cnt_CURR)"
+                },
+                "target": {
+                  "fieldName": "measure(targer_opp)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Renewals"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 1,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "ee8f00dd",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(target_acv)",
+                      "expression": "MEASURE(`target_acv`)"
+                    },
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stage_name` IN ('6 Booked')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                },
+                "target": {
+                  "fieldName": "measure(target_acv)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Bookings"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "38fc0c4f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(Win_Rate_percentage)",
+                      "expression": "MEASURE(`Win_Rate_percentage`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_current_year` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Win_Rate_percentage)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Win Rate"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 4,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "5cfc3d51",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(target_acv)",
+                      "expression": "MEASURE(`target_acv`)"
+                    },
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_lost` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 2
+                    }
+                  }
+                },
+                "target": {
+                  "fieldName": "measure(target_acv)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Lost Bookings"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "482c2a37",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(Renewal_Rate_percentage)",
+                      "expression": "MEASURE(`Renewal_Rate_percentage`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`is_current_year` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Renewal_Rate_percentage)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Renewal Rate"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 4,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "0fcb8f06",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(csat_PREV)",
+                      "expression": "MEASURE(`csat_PREV`)"
+                    },
+                    {
+                      "name": "measure(csat_CURR)",
+                      "expression": "MEASURE(`csat_CURR`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(csat_CURR)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "style": {
+                    "fontSize": 36
+                  }
+                },
+                "target": {
+                  "fieldName": "measure(csat_PREV)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "CSAT"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 1,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "f447f181",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(nps_PREV)",
+                      "expression": "MEASURE(`nps_PREV`)"
+                    },
+                    {
+                      "name": "measure(nps_CURR)",
+                      "expression": "MEASURE(`nps_CURR`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(nps_CURR)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "style": {
+                    "fontSize": 36
+                  }
+                },
+                "target": {
+                  "fieldName": "measure(nps_PREV)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "NPS"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 8,
+            "width": 1,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "d8d020ba",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "service_family",
+                      "expression": "`service_family`"
+                    },
+                    {
+                      "name": "avg(CVA_CSAT)",
+                      "expression": "AVG(`CVA_CSAT`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`service_family` IS NOT NULL"
+                    },
+                    {
+                      "expression": "`is_current_year` IN (1)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "service_family",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Service Family"
+                },
+                "y": {
+                  "fieldName": "avg(CVA_CSAT)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Average CVA"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "mark": {
+                "colors": [
+                  "#33CCC5",
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 8,
+            "width": 4,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "f95f7d19",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    },
+                    {
+                      "name": "reporting_org",
+                      "expression": "`reporting_org`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "reporting_org",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Asia Pacific",
+                        "color": "#7DAFD5"
+                      },
+                      {
+                        "value": "Americas",
+                        "color": "#19417D"
+                      },
+                      {
+                        "value": "KDM",
+                        "color": "#A084A3"
+                      },
+                      {
+                        "value": "EMEA",
+                        "color": "#CFE7E6"
+                      },
+                      {
+                        "value": "Mktg",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 10
+                        }
+                      },
+                      {
+                        "value": "CAT",
+                        "color": "#3E353F"
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              },
+              "frame": {
+                "showTitle": false,
+                "title": "Bookings by Reporting Org"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 13,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "fe1a5b86",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size:24px;color:#E8ECF0\">**Top Accounts**</span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#1C618D"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "81759db2",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`roadmap_status` IN ('Forecast')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Forecast"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 20,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "3de72118",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`roadmap_status` IN ('Forecast')"
+                    },
+                    {
+                      "expression": "`opp_type` IN ('Cross Sell', 'Up Sell')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Cross Sell / Up Sell (ACV)"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 20,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "5038a994",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`roadmap_status` IN ('Forecast')"
+                    },
+                    {
+                      "expression": "`opp_type` IN ('Renewal of Contract/Extension')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(amount_acv_CURR)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Renewals Forecast"
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#203544"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 20,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "1079f370",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 24px;color: #E8ECF0;\">**Customer Sentiment and Bookings**</span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#1C618D"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "0eab28d1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 24px;color: #E8ECF0;\">**Forecast**</span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#1C618D"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 19,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "0556b6d6",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size:24px;color:#E8ECF0\">**Bookings by Reporting Org**</span>"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#1C618D"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 12,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "898f649b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "account_name",
+                      "expression": "`account_name`"
+                    },
+                    {
+                      "name": "measure(amount_acv_CURR)",
+                      "expression": "MEASURE(`amount_acv_CURR`)"
+                    }
+                  ],
+                  "cubeGroupingSets": {
+                    "sets": [
+                      {
+                        "fieldNames": [
+                          "account_name"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "`account_name`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pivot",
+              "encodings": {
+                "rows": [
+                  {
+                    "fieldName": "account_name",
+                    "scale": {
+                      "type": "categorical",
+                      "sort": {
+                        "by": "cell-reversed",
+                        "field": {
+                          "index": 0
+                        }
+                      }
+                    },
+                    "headerWidth": 200,
+                    "displayName": "Accounts"
+                  }
+                ],
+                "cell": {
+                  "type": "multi-cell",
+                  "fields": [
+                    {
+                      "fieldName": "measure(amount_acv_CURR)",
+                      "cellType": "text",
+                      "contentAlignment": "left",
+                      "style": {
+                        "type": "color-scale",
+                        "backgroundColor": {
+                          "scale": {
+                            "type": "quantitative",
+                            "colorRamp": {
+                              "mode": "scheme",
+                              "scheme": "blues"
+                            },
+                            "reverse": false
+                          }
+                        }
+                      },
+                      "format": {
+                        "type": "number-currency",
+                        "currencyCode": "USD",
+                        "abbreviation": "none",
+                        "decimalPlaces": {
+                          "type": "exact",
+                          "places": 2
+                        },
+                        "hideGroupSeparator": false
+                      },
+                      "displayName": "Bookings"
+                    }
+                  ],
+                  "width": 150
+                }
+              },
+              "frame": {
+                "showTitle": false,
+                "title": "Top Account",
+                "headerAlignment": "left"
+              }
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#FFFFFF"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 13,
+            "width": 2,
+            "height": 10
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    },
+    {
+      "name": "955dff0c",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "85fc145c",
+            "queries": [
+              {
+                "name": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_service_line",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "service_line",
+                      "expression": "`service_line`"
+                    },
+                    {
+                      "name": "service_line_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "service_line",
+                    "queryName": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_service_line"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Service Line"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "377a36f9",
+            "queries": [
+              {
+                "name": "parameter_dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_Year_Param",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "parameters": [
+                    {
+                      "name": "Year_Param",
+                      "keyword": "Year_Param"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "parameterName": "Year_Param",
+                    "queryName": "parameter_dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_Year_Param"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Year"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "6b0e72dc",
+            "queries": [
+              {
+                "name": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_reporting_org",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "reporting_org",
+                      "expression": "`reporting_org`"
+                    },
+                    {
+                      "name": "reporting_org_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "reporting_org",
+                    "queryName": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_reporting_org"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Reporting Org"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "643f36a8",
+            "queries": [
+              {
+                "name": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_stage_name",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "stage_name",
+                      "expression": "`stage_name`"
+                    },
+                    {
+                      "name": "stage_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "stage_name",
+                    "queryName": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_stage_name"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Stage"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "de62b72c",
+            "queries": [
+              {
+                "name": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_na_vertical",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "na_vertical",
+                      "expression": "`na_vertical`"
+                    },
+                    {
+                      "name": "na_vertical_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "na_vertical",
+                    "queryName": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_na_vertical"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "NA Vertical"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "3b1a856e",
+            "queries": [
+              {
+                "name": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_opp_type",
+                "query": {
+                  "datasetName": "dac3fcb2",
+                  "fields": [
+                    {
+                      "name": "opp_type",
+                      "expression": "`opp_type`"
+                    },
+                    {
+                      "name": "opp_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "opp_type",
+                    "queryName": "dashboards/01f09f371e0718eb91779d0acc3e3785/datasets/01f09f371e071cf9941edf0b1a604d6c_opp_type"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Account Type"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    }
+  }
+}
